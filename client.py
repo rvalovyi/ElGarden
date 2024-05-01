@@ -3,6 +3,7 @@
 import sys
 import socket
 import json
+import logging
 
 server_addr = ('localhost', 2300)
 
@@ -19,42 +20,35 @@ def get_state():
         buffer = json.loads(request)
         out = str.encode(json.dumps(buffer))
         nsent = s.send(out)
-        # print("Sent {:d} bytes".format(nsent))
+        if nsent > 0:
+            buff = s.recv(1024)
+            result = json.loads(buff.decode())
 
-        buff = s.recv(1024)
-        result = json.loads(buff.decode())
-
-        if "error" in result:
-            error = result["error"]
-            if error == 0:
-                if "is_running" in result and \
-                   "is_light_on" in result and \
-                   "is_pump_on" in result and \
-                   "pH" in result and \
-                   "EC" in result :
-                    state_running = "ON" if result["is_running"]==True else "OFF"
-                    state_light = "ON" if result["is_light_on"]==True else "OFF"
-                    state_pump = "ON" if result["is_pump_on"]==True else "OFF"
-                    state_pH = result["pH"]
-                    state_EC = result["EC"]
-
-                    # print(f"Light: {state_light}; pump: {state_pump}; pH: {state_pH}; EC: {state_EC}")
-                    out = result
+            if "error" in result:
+                error = result["error"]
+                if error == 0:
+                    if "is_running" in result and \
+                       "is_light_on" in result and \
+                       "is_pump_on" in result and \
+                       "pH" in result and \
+                       "EC" in result :
+                        out = result
+                    else:
+                        logging.error(f"Unexpected answer: {json.dumps(result, indent = 4)}")
                 else:
-                    print(f"Unexpected answer: {json.dumps(result, indent = 4)}")
+                    logging.error(f"Error: {error}\n {json.dumps(result, indent = 4)}")
             else:
-                print(f"Error: {error}\n {json.dumps(result, indent = 4)}")
-
+                logging.error(f"Unexpected answer: {json.dumps(result, indent=4)}")
         else:
-            print(f"Unexpected answer: {json.dumps(result, indent = 4)}")
+            logging.error(f"Failed to send data. error: {nsent}")
 
 
     except AttributeError as ae:
-        print("Error creating the socket: {}".format(ae))
+        logging.error("Error creating the socket: {}".format(ae))
     except socket.error as se:
-        print("Exception on socket: {}".format(se))
+        logging.error("Exception on socket: {}".format(se))
     finally:
-        print("Closing socket")
+        logging.error("Closing socket")
         s.close()
     return out
 
@@ -65,50 +59,41 @@ def get_config():
 
     try:
         s.connect(server_addr)
-        print("Connected to {:s}".format(repr(server_addr)))
+        logging.info("Connected to {:s}".format(repr(server_addr)))
 
         request = '{ "command": "get_config", "param": "all"}'
 
         buffer = json.loads(request)
         out = str.encode(json.dumps(buffer))
         nsent = s.send(out)
-        # print("Sent {:d} bytes".format(nsent))
+        if nsent > 0:
+            buff = s.recv(1024)
+            result = json.loads(buff.decode())
 
-        buff = s.recv(1024)
-        result = json.loads(buff.decode())
-        # print(f"Recv: {json.dumps(result, indent=4)}")
-
-        if "error" in result:
-            error = result["error"]
-            if error == 0:
-                if "light_on" in result and \
-                   "light_off" in result and \
-                   "pump_on" in result and \
-                   "pump_off" in result and \
-                   "pump_night" in result :
-                    light_on = result["light_on"]
-                    light_off = result["light_off"]
-                    pump_on = result["pump_on"]
-                    pump_off = result["pump_off"]
-                    pump_night = result["pump_night"]
-
-                    # print(f"light_on: {light_on}; light_off: {light_off}; pump_on: {pump_on}; pump_off: {pump_off}; pump_night: {pump_night}")
-                    out = result
+            if "error" in result:
+                error = result["error"]
+                if error == 0:
+                    if "light_on" in result and \
+                            "light_off" in result and \
+                            "pump_on" in result and \
+                            "pump_off" in result and \
+                            "pump_night" in result:
+                        out = result
+                    else:
+                        logging.error(f"Unexpected answer: {json.dumps(result, indent=4)}")
                 else:
-                    print(f"Unexpected answer: {json.dumps(result, indent = 4)}")
+                    logging.error(f"Error: {error}\n {json.dumps(result, indent=4)}")
             else:
-                print(f"Error: {error}\n {json.dumps(result, indent = 4)}")
-
+                logging.error(f"Unexpected answer: {json.dumps(result, indent=4)}")
         else:
-            print(f"Unexpected answer: {json.dumps(result, indent = 4)}")
-
+            logging.error(f"Failed to send data. error: {nsent}")
 
     except AttributeError as ae:
-        print("Error creating the socket: {}".format(ae))
+        logging.error("Error creating the socket: {}".format(ae))
     except socket.error as se:
-        print("Exception on socket: {}".format(se))
+        logging.error("Exception on socket: {}".format(se))
     finally:
-        print("Closing socket")
+        logging.error("Closing socket")
         s.close()
     return out
 
@@ -126,7 +111,7 @@ def set_config(data):
            "pump_night" in data:
 
             s.connect(server_addr)
-            print("Connected to {:s}".format(repr(server_addr)))
+            logging.info("Connected to {:s}".format(repr(server_addr)))
 
             request = '{ "command": "set_config", "param": {}}'
             request_json = json.loads(request)
@@ -134,30 +119,30 @@ def set_config(data):
 
             out = str.encode(json.dumps(request_json))
             nsent = s.send(out)
-            # print("Sent {:d} bytes".format(nsent))
+            if nsent > 0:
+                s.settimeout(2)
+                buff = s.recv(1024)
+                result = json.loads(buff.decode())
 
-            s.settimeout(2)
-            buff = s.recv(1024)
-            result = json.loads(buff.decode())
-
-            # print(f"Recv result {result}")
-            if "error" in result:
-                error = result["error"]
-                if error == 0:
-                    print("Successfully configured")
+                if "error" in result:
+                    error = result["error"]
+                    if error == 0:
+                        logging.error("Successfully configured")
+                    else:
+                        logging.error(f"Error: {error}\n {json.dumps(result, indent=4)}")
                 else:
-                    print(f"Error: {error}\n {json.dumps(result, indent = 4)}")
+                    logging.error(f"Unexpected answer: {json.dumps(result, indent=4)}")
             else:
-                print(f"Unexpected answer: {json.dumps(result, indent = 4)}")
+                logging.error(f"Failed to send data. error: {nsent}")
         else:
-            print(f"Unexpected erguments: {json.dumps(data, indent = 4)}")
+            logging.error(f"Unexpected erguments: {json.dumps(data, indent = 4)}")
 
     except AttributeError as ae:
-        print("Error creating the socket: {}".format(ae))
+        logging.error("Error creating the socket: {}".format(ae))
     except socket.error as se:
-        print("Exception on socket: {}".format(se))
+        logging.error("Exception on socket: {}".format(se))
     finally:
-        print("Closing socket")
+        logging.error("Closing socket")
         s.close()
     return error
 

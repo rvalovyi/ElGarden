@@ -1,6 +1,7 @@
 import logging
-import cmd, sys
+import cmd
 import json
+from titles import titles_list, LANG_DEFAULT
 from pathlib import Path
 
 CONFIG_DIR  = ".el_garden"
@@ -19,6 +20,47 @@ def authentication(message):
                     user_name = message.from_user.first_name
                     return True
     logging.warning(f"Unknown user id.")
+    return False
+
+def get_token():
+    filepath = Path(FILE_CFG)
+    if Path(filepath).exists():
+        with open(FILE_CFG, 'r') as f:
+            config = json.load(f)
+            if "token" in config:
+                return config["token"]
+            else:
+                print(f'The token is not in the telegram configuration.')
+                print(f'You should use config.py to config telegram bot.')
+                return None
+    else:
+        print(f'The telegram configuration is absent.')
+        print(f'You should use config.py to config telegram bot.')
+        return None
+
+
+def get_titles():
+    filepath = Path(FILE_CFG)
+    lang = LANG_DEFAULT
+    if Path(filepath).exists():
+        with open(FILE_CFG, 'r') as f:
+            config = json.load(f)
+            if "lang" in config:
+                lang = config["lang"]
+    return titles_list[lang]
+
+
+def set_lang(lang):
+    filepath = Path(FILE_CFG)
+    if Path(filepath).exists():
+        with open(FILE_CFG, 'r') as f:
+            config = json.load(f)
+            config["lang"] = lang
+            with open(FILE_CFG, 'w') as f:
+                json.dump(config, f, indent=4)
+                return True
+    else:
+        logging.error(f"Failed to change the configuration.")
     return False
 
 
