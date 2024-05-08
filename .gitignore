@@ -34,7 +34,7 @@
 *.lib
 
 # Executables
-server
+el_garden
 *.exe
 *.out
 *.app
