@@ -32,23 +32,12 @@ RUN apt-get -y update && apt-get -y upgrade && apt-get install -y build-essentia
     -y ccache \
     -y rsync
 
-RUN mkdir -p /opt/cross/cross-pi-gcc
-
-#RUN mkdir -p ~/cross-pi-gcc-10.3.0-2
-#COPY cross-pi-gcc-10.3.0-2 /root/cross-pi-gcc-10.3.0-2
-
 ARG bit_capacity
 ARG gcc_version
 ARG pi_version
 ARG gcc_vendor
 
-RUN echo "bit_capacity: $bit_capacity"
-RUN echo "gcc_version: $gcc_version"
-RUN echo "pi_version: $pi_version"
-RUN echo "gcc_vendor: $gcc_vendor"
-
-#RUN COMMAND="chmod +x ./RTBuilder_"$bit_capacity"b && ./RTBuilder_"$bit_capacity"b -g \"$gcc_version\" -r \"$pi_version\" -o \"$gcc_vendor\" -V" \
-#    && echo "$COMMAND" 
+RUN mkdir -p /opt/cross/cross-pi-gcc
 
 COPY Toolchain-RaspberryPi.cmake /opt/cross/Toolchain-RaspberryPi.cmake
 
@@ -56,30 +45,21 @@ RUN /usr/sbin/update-ccache-symlinks \
     && echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc \
     && export CCACHE_COMPRESS=1 \
     && export CCACHE_DIR=$HOME/.ccache  \
-    && . ~/.bashrc && echo $PATH \
     && cd /tmp && git clone https://github.com/abhiTronix/raspberry-pi-cross-compilers.git \
     && CMD1="chmod +x ./RTBuilder_"$bit_capacity"b" \
     && CMD2="./RTBuilder_"$bit_capacity"b -g "$gcc_version" -r "$pi_version" -o "$gcc_vendor" -V" \
-    && echo "=========================================== CMD1: $CMD1" \
-    && echo "=========================================== CMD2: $CMD2" \
     && cd /tmp/raspberry-pi-cross-compilers/build-scripts && $CMD1 && $CMD2 \
-    && mkdir -p /opt/cross \
     && tar -xzvf ~/cross-gcc-*.tar.gz -C ~/ \
-    && rm -rf ~/*.tar.gz \
     && /bin/bash -c 'CROSS_DIR_LIST="$(ls ~/)" \
-    && echo "CROSS_DIR_LIST: $CROSS_DIR_LIST" \
-    && echo "===============================" \
     && for d in $CROSS_DIR_LIST; do \
           if [[ $d == cross-pi-gcc* ]] ; then \ 
               TOOLCHAIN_DIR_NAME=$d; break; \              
           fi; \
-       done \
-    && echo "TOOLCHAIN_DIR_NAME: $TOOLCHAIN_DIR_NAME" \
+       done ' \
     && cp -ra ~/$TOOLCHAIN_DIR_NAME/. /opt/cross/cross-pi-gcc/ \
-    && /bin/bash -c 'echo "CROSS COMPILATOR: $(ls /opt/cross/cross-pi-gcc/)"'
-    && rm -rf ~/$TOOLCHAIN_DIR_NAME '
-
-#RUN /bin/bash -c 'echo "### $(ls /opt/cross/cross-pi-gcc/)"'
+    && rm -rf ~/*.tar.gz \
+    && rm -rf ~/$TOOLCHAIN_DIR_NAME \
+    && cd / && rm -rf /tmp/*
 
 ENV PATH "$PATH:/opt/cross/cross-pi-gcc/bin:/opt/cross/cross-pi-gcc/lib:/opt/cross/cross-pi-gcc/include"
 
@@ -128,4 +108,3 @@ RUN cd /tmp && git clone https://github.com/joan2937/pigpio.git \
     && cp -P /tmp/pigpio/libpigpiod_if*.so* /opt/cross/cross-pi-gcc/lib/  \
     && cp /tmp/pigpio/pigpio.h /opt/cross/cross-pi-gcc/include/ \
     && cd / && rm -rf /tmp/*
-
