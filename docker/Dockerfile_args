@@ -1,0 +1,19 @@
+FROM debian:10
+
+MAINTAINER Ruslan Valovyi
+ENV GIT_REPO el_garden
+
+#Build Debian dependencies
+
+ARG bit_capacity
+ARG gcc_version
+ARG pi_version
+ARG gcc_vendor
+
+RUN echo "bit_capacity: $bit_capacity"
+RUN echo "gcc_version: $gcc_version"
+RUN echo "pi_version: $pi_version"
+RUN echo "gcc_vendor: $gcc_vendor"
+
+RUN COMMAND="chmod +x ./RTBuilder_"$bit_capacity"b && ./RTBuilder_"$bit_capacity"b -g \"$gcc_version\" -r \"$pi_version\" -o \"$gcc_vendor\" -V" \
+    && echo "$COMMAND" 
