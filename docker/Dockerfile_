@@ -1,0 +1,34 @@
+FROM debian:10
+
+MAINTAINER Ruslan Valovyi
+ENV GIT_REPO el_garden
+
+#Build Debian dependencies
+
+ARG bit_capacity
+ARG gcc_version
+ARG pi_version
+ARG gcc_vendor
+
+RUN mkdir -p /opt/cross/cross-pi-gcc
+
+COPY Toolchain-RaspberryPi.cmake /opt/cross/Toolchain-RaspberryPi.cmake
+
+COPY cross-gcc-10.3.0-pi_3+.tar.gz /root/
+
+RUN /bin/bash -c 'tar -xzvf /root/cross-gcc-*.tar.gz -C /root/ \
+    && CROSS_DIR_LIST="$(ls /root/)" \
+    && echo "CROSS_DIR_LIST: $CROSS_DIR_LIST" \
+    && echo "===============================" \
+    && for d in $CROSS_DIR_LIST; do \
+          echo "Iteratoin: $d"; \
+          if [[ $d == cross-pi-gcc* ]] ; then \ 
+              TOOLCHAIN_DIR_NAME=$d; echo "Selected: $TOOLCHAIN_DIR_NAME"; break; \              
+          fi; \
+       done  \
+    && echo "TOOLCHAIN_DIR_NAME: $TOOLCHAIN_DIR_NAME" \
+    && cp -r /root/$TOOLCHAIN_DIR_NAME/* /opt/cross/cross-pi-gcc/ \
+    && rm -rf /root/*.tar.gz \
+    && cd / && rm -rf /tmp/* '
+
+ENV PATH "$PATH:/opt/cross/cross-pi-gcc/bin:/opt/cross/cross-pi-gcc/lib:/opt/cross/cross-pi-gcc/include"

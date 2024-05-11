@@ -41,21 +41,7 @@ RUN mkdir -p /opt/cross/cross-pi-gcc
 
 COPY Toolchain-RaspberryPi.cmake /opt/cross/Toolchain-RaspberryPi.cmake
 
-#COPY cross-gcc-10.3.0-pi_3+.tar.gz /root/
-#RUN /bin/bash -c 'tar -xzvf /root/cross-gcc-*.tar.gz -C /root/ \
-#    && CROSS_DIR_LIST="$(ls /root/)" \
-#    && for d in $CROSS_DIR_LIST; do \
-#          echo "Iteratoin: $d"; \
-#          if [[ $d == cross-pi-gcc* ]] ; then \ 
-#              TOOLCHAIN_DIR_NAME=$d; break; \              
-#          fi; \
-#       done  \
-#    && cp -r /root/$TOOLCHAIN_DIR_NAME/* /opt/cross/cross-pi-gcc/ \
-#    && rm -rf /root/*.tar.gz \
-#    && rm -rf /root/$TOOLCHAIN_DIR_NAME \
-#    && cd / && rm -rf /tmp/* '
-
-RUN /bin/bash -c '/usr/sbin/update-ccache-symlinks \
+RUN /usr/sbin/update-ccache-symlinks \
     && echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc \
     && export CCACHE_COMPRESS=1 \
     && export CCACHE_DIR=$HOME/.ccache && . ~/.bashrc \
@@ -63,18 +49,17 @@ RUN /bin/bash -c '/usr/sbin/update-ccache-symlinks \
     && CMD1="chmod +x ./RTBuilder_"$bit_capacity"b" \
     && CMD2="./RTBuilder_"$bit_capacity"b -g "$gcc_version" -r "$pi_version" -o "$gcc_vendor" -V" \
     && cd /tmp/raspberry-pi-cross-compilers/build-scripts && $CMD1 && $CMD2 \
-    && tar -xzvf /root/cross-gcc-*.tar.gz -C /root/ \
-    && CROSS_DIR_LIST="$(ls /root/)" \
+    && tar -xzvf ~/cross-gcc-*.tar.gz -C ~/ \
+    && /bin/bash -c 'CROSS_DIR_LIST="$(ls ~/)" \
     && for d in $CROSS_DIR_LIST; do \
-          echo "Iteratoin: $d"; \
           if [[ $d == cross-pi-gcc* ]] ; then \ 
               TOOLCHAIN_DIR_NAME=$d; break; \              
           fi; \
-       done  \
-    && cp -r /root/$TOOLCHAIN_DIR_NAME/* /opt/cross/cross-pi-gcc/ \
-    && rm -rf /root/*.tar.gz \
-    && rm -rf /root/$TOOLCHAIN_DIR_NAME \
-    && cd / && rm -rf /tmp/* '
+       done ' \
+    && cp -ra ~/$TOOLCHAIN_DIR_NAME/. /opt/cross/cross-pi-gcc/ \
+    && rm -rf ~/*.tar.gz \
+    && rm -rf ~/$TOOLCHAIN_DIR_NAME \
+    && cd / && rm -rf /tmp/*
 
 ENV PATH "$PATH:/opt/cross/cross-pi-gcc/bin:/opt/cross/cross-pi-gcc/lib:/opt/cross/cross-pi-gcc/include"
 
