@@ -1,0 +1,23 @@
+FROM debian:10
+
+MAINTAINER Ruslan Valovyi
+ENV GIT_REPO el_garden
+
+#Build Debian dependencies
+
+RUN mkdir -p /opt/cross/air1
+RUN mkdir -p /opt/cross/cross-pi-gcc-10.3.0-2
+RUN mkdir -p /opt/cross/dir2
+
+RUN /bin/bash -c 'CROSS_DIR_LIST="$(ls /opt/cross)" \
+    && for d in $CROSS_DIR_LIST; do \
+          if [[ $d == cross-pi-gcc* ]] ; then \ 
+              TOOLCHAIN_DIR_NAME=$d; break; \              
+          fi; \
+       done \
+    && echo "$TOOLCHAIN_DIR_NAME" > /tmp/temp_dir_name '
+
+RUN TOOLCHAIN_DIR_NAME=$(cat /tmp/temp_dir_name) && echo "TOOLCHAIN_DIR_NAME $TOOLCHAIN_DIR_NAME" 
+
+RUN rm -rf /tmp/*
+

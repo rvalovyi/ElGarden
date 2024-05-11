@@ -5,8 +5,12 @@ case $1 in
         docker rmi -f raspberry/pi
     ;;
 
+  --debug)
+        docker build . -t raspberry/pi --network host --progress plain --no-cache
+    ;;
+
   *)
-        docker build . -t raspberry/pi --network host
+        docker build . -t raspberry/pi --network host 
     ;;
 esac
 

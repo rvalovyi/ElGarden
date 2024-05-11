@@ -11,16 +11,14 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 find_library (LIBJSONC_LIBRARIES
   NAMES libjson-c.a
-#  PATHS ${CMAKE_FIND_ROOT_PATH}/json-c/json-c-build
 )
 
 find_library (LIBBSD_LIBRARIES
   NAMES libbsd.a
-#  PATHS ${CMAKE_FIND_ROOT_PATH}/./libbsd/src/.libs
 )
 
 find_path (JSON_H_INCLUDE_DIRS
-  NAMES json.h
+  NAMES json-c/json.h
 )
 
 message(STATUS "LIBJSONC_LIBRARIES: ${LIBJSONC_LIBRARIES}")
