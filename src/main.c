@@ -98,6 +98,10 @@ int main()
         if(!isOk(status)) {
             break;
         }
+        status = actuator_init();
+        if(!isOk(status)) {
+            break;
+        }
         if (container.config->running) {
             status = timer_calc(container.event_light, container.config, container.state);
             if(!isOk(status)) {

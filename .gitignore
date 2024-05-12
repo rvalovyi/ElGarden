@@ -34,13 +34,14 @@
 *.lib
 
 # Executables
-server
+el_garden
 *.exe
 *.out
 *.app
 
 #CMake
-build
+build_arm
+build_x86
 external
 
 # Byte-compiled / optimized / DLL files
