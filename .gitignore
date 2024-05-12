@@ -40,7 +40,8 @@ el_garden
 *.app
 
 #CMake
-build
+build_arm
+build_x86
 external
 
 # Byte-compiled / optimized / DLL files

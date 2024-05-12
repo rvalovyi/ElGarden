@@ -2,8 +2,12 @@
 
 #include "common.h"
 #include "types.h"
-#include <pigpio.h>
 
+#if defined BUILD_PLATFORM_ARM
+#include <pigpio.h>
+#else
+#define gpioInitialise() ({ int result = 0; result; })
+#endif
 /******************************************************************/
 static inline
 hStatus actuator_init()
@@ -16,7 +20,7 @@ hStatus actuator_init()
     }
     else
     {
-        hLog(LOG_ERR, "GPIO initialization successful");
+        hLog(LOG_INFO, "GPIO initialization successful");
        // pigpio initialised okay.
     }
 

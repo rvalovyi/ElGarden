@@ -55,10 +55,11 @@ COPY Toolchain-RaspberryPi.cmake /opt/cross/Toolchain-RaspberryPi.cmake
 #    && rm -rf /root/$TOOLCHAIN_DIR_NAME \
 #    && cd / && rm -rf /tmp/* '
 
+ENV PATH "$PATH:/usr/lib/ccache"
+
 RUN /bin/bash -c '/usr/sbin/update-ccache-symlinks \
-    && echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc \
     && export CCACHE_COMPRESS=1 \
-    && export CCACHE_DIR=$HOME/.ccache && . ~/.bashrc \
+    && export CCACHE_DIR=$HOME/.ccache \
     && cd /tmp && git clone https://github.com/abhiTronix/raspberry-pi-cross-compilers.git \
     && CMD1="chmod +x ./RTBuilder_"$bit_capacity"b" \
     && CMD2="./RTBuilder_"$bit_capacity"b -g "$gcc_version" -r "$pi_version" -o "$gcc_vendor" -V" \
@@ -66,7 +67,6 @@ RUN /bin/bash -c '/usr/sbin/update-ccache-symlinks \
     && tar -xzvf /root/cross-gcc-*.tar.gz -C /root/ \
     && CROSS_DIR_LIST="$(ls /root/)" \
     && for d in $CROSS_DIR_LIST; do \
-          echo "Iteratoin: $d"; \
           if [[ $d == cross-pi-gcc* ]] ; then \ 
               TOOLCHAIN_DIR_NAME=$d; break; \              
           fi; \
